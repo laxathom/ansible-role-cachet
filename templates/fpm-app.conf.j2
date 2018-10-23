@@ -1,0 +1,25 @@
+[cachet]
+
+user = {{ cachet_php_fpm_user }}
+group = {{ cachet_php_fpm_group }}
+
+listen = {{ cachet_php_fpm_listen }}
+listen.allowed_clients = {{ cachet_php_fpm_whitelist | join(',') }}
+listen.owner = {{ cachet_php_fpm_listen_owner }}
+listen.group = {{ cachet_php_fpm_listen_group }}
+listen.mode = {{ cachet_php_fpm_mode }}
+
+pm = dynamic
+pm.max_children = 50
+pm.start_servers = 5
+pm.min_spare_servers = 5
+pm.max_spare_servers = 5
+pm.max_requests = 500
+
+slowlog = /var/log/php-fpm/{{ cachet_user }}-slow.log
+php_admin_value[error_log] = /var/log/php-fpm/{{ cachet_user }}-error.log
+php_admin_flag[log_errors] = on
+
+php_value[session.save_handler] = files
+php_value[session.save_path]    = {{ cachet_sessiondir }}
+php_value[soap.wsdl_cache_dir]  = {{ cachet_cachedir }}

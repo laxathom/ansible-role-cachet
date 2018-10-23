@@ -1,0 +1,57 @@
+---
+cachet_install_php: True
+cachet_install_mysql: True
+cachet_install_pgsql: False
+
+cachet_install_dir: /var/www/
+cachet_branch_version: v2.3.12
+cachet_update_from_git: false
+cachet_user: cachet
+cachet_group: cachet
+cachet_homedir: "/var/lib/cachet"
+
+cachet_app_env: staging
+cachet_app_debug: false
+cachet_app_url: https://status.domain.tld
+cachet_app_key: 3sf0sadf23fl243jkfw0a9e8fjqw4o3jfq34f
+
+cachet_db_driver: mysql
+cachet_db_host: localhost
+cachet_db_database: cachet
+cachet_db_username: cachet
+cachet_db_password: mysuperduperdbpassword
+cachet_db_port: 3306
+
+cachet_cache_driver: apc
+cachet_session_driver: apc
+cachet_queue_driver: database
+cachet_cachet_emoji: false
+
+cachet_redis_host: null
+cachet_redis_database: null
+cachet_redis_port: null
+
+cachet_github_token: null
+
+cachet_php_fpm_includedir: "/etc/php-fpm.d"
+cachet_php_fpm_pool: "{{ cachet_php_fpm_includedir }}/cachet.conf"
+cachet_php_fpm_user: "{{ cachet_user }}"
+cachet_php_fpm_group: "{{ cachet_group }}"
+cachet_php_fpm_listen_owner: "{{ cachet_user }}"
+cachet_php_fpm_listen_group: "{{ cachet_group }}"
+cachet_php_fpm_listen_port: 6666
+cachet_php_fpm_mode: 660
+cachet_php_fpm_whitelist:
+    - 127.0.0.1
+
+cachet_sessiondir: "{{ cachet_homedir }}/.session"
+cachet_cachedir: "{{ cachet_homedir }}/.cache"
+
+cachet_smtp_driver: smtp
+cachet_smtp_host: localhost
+cachet_smtp_port: 25
+cachet_smtp_user: 'null'
+cachet_smtp_password: 'null'
+cachet_smtp_address: 'noreply@domain.tld'
+cachet_smtp_sender: 'Cachet Notification'
+cachet_smtp_auth: 'tls'

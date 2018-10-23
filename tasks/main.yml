@@ -1,0 +1,151 @@
+---
+- name: Ensure git is installed
+  package:
+    name: git
+    state: present
+  tags:
+    - cachet
+    - cachet-pkgs
+
+- name: Ensure system group is present
+  group:
+    name: "{{ cachet_group }}"
+    system: "yes"
+    state: "present"
+  tags:
+    - cachet
+    - cachet-account
+
+- name: Ensure system user is present
+  user:
+    name: "{{ cachet_user }}"
+    comment: "Cachet Status Page"
+    group: "{{ cachet_group }}"
+    home: "{{ cachet_homedir }}"
+    system: "yes"
+    state: "present"
+  tags:
+    - cachet
+    - cachet-account
+
+- name: Pull down App src from git
+  git:
+    repo: https://github.com/cachethq/Cachet.git
+    dest: "{{ cachet_install_dir }}"
+    version: "{{ cachet_branch_version }}"
+    update: "{{ cachet_update_from_git }}"
+  tags:
+    - cachet
+    - cachet-update
+
+- name: Update ownership on app dir
+  file:
+    dest: '{{ cachet_install_dir }}'
+    owner: '{{ cachet_user }}'
+    group: '{{ cachet_group }}'
+    recurse: yes
+  tags:
+    - cachet
+    - cachet-update
+
+- name: Deploy configurtion
+  template:
+    src: env.j2
+    dest: "{{ cachet_install_dir }}/.env"
+    owner: "{{ cachet_user }}"
+    group: "{{ cachet_group }}"
+  notify: Clear cache
+  tags:
+    - cachet
+    - cachet-config
+
+- name: Install dependencies
+  command: /usr/local/bin/composer install --no-dev -o
+  args:
+    chdir: '{{ cachet_install_dir }}'
+  become: yes
+  become_user: '{{ cachet_user }}'
+  tags:
+    - cachet
+
+#- name: Build application key
+#  shell: php artisan key:generate
+#  args:
+#    chdir: '{{ cachet_install_dir }}'
+#  become: yes
+#  become_user: '{{ cachet_user }}'
+#  tags:
+#    - cachet
+#    - cachet-key
+
+- name: Install Application and database
+  shell: php artisan app:install
+  args:
+    chdir: '{{ cachet_install_dir }}'
+  become: yes
+  become_user: '{{ cachet_user }}'
+  tags:
+    - cachet
+
+- name: Deploy php-fpm pool config
+  template:
+    src: fpm-app.conf.j2
+    dest: "{{ cachet_php_fpm_pool }}"
+    owner: root
+    group: root
+    mode: 0644
+  when: cachet_install_php
+  notify: Restart php-fpm
+  tags:
+    - cachet
+    - cachet-config
+
+- stat:
+    path: "{{ cachet_sessiondir }}"
+  register: sessiondir
+  tags:
+    - cachet
+    - cachet-config
+
+- stat:
+    path: "{{ cachet_cachedir }}"
+  register: cachedir
+  tags:
+    - cachet
+    - cachet-config
+
+- name: Create session directory
+  file:
+    path: "{{ cachet_sessiondir }}"
+    state: directory
+    owner: "{{ cachet_user }}"
+    group: "{{ cachet_group }}"
+  when: sessiondir.stat.isdir is not defined
+  tags:
+    - cachet
+    - cachet-config
+
+- name: Create cache directory
+  file:
+    path: "{{ cachet_cachedir }}"
+    state: directory
+    owner: "{{ cachet_user }}"
+    group: "{{ cachet_group }}"
+  when: cachedir.stat.isdir is not defined
+  tags:
+    - cachet
+    - cachet-config
+
+- name: Check selinux state
+  command: getenforce
+  register: sestatus
+  changed_when: false
+  tags:
+    - cachet
+    - cachet-selinux
+
+- include: selinux.yml
+  when: sestatus.stdout != 'Disabled'
+  tags:
+    - cachet
+    - cachet-selinux
