@@ -1,5 +1,6 @@
 galaxy_info:
   author: Xavier Lamien
+  role_name: cachet
   description: Ansible role to install  and configure Cachet
   company: iFeelSmart
 
